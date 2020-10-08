@@ -7,6 +7,7 @@ output: github_document
 ### Problem 1
 
 ```{r}
+library(tidyverse)
 library(p8105.datasets)
 data("instacart")
 ```
@@ -18,6 +19,60 @@ Observations are the level of items in orders by user. There are user / order va
 How many aisles, and which are most items from? 
 
 ```{r}
-
+instacart %>%
+  count(aisle) %>%
+  arrange(desc(n))
 ```
+
+Make a plot that shows the number of items ordered in each aisle:
+
+```{r}
+instacart %>%
+  count(aisle) %>%
+  filter(n > 10000) %>%
+  mutate(
+    aisle = factor(aisle),
+    aisle = fct_reorder(aisle, n)
+  ) %>%
+  ggplot(aes(x = aisle, y = n)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Make a table that shows most popular items in “baking ingredients”, “dog food care”, and “packaged vegetables fruits” aisles. 
+
+```{r}
+instacart %>%
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
+  group_by(aisle) %>%
+  count(product_name) %>%
+  mutate(rank = min_rank(desc(n))) %>%
+  filter(rank < 4) %>%
+  arrange(aisle, rank) %>%
+  knitr::kable()
+```
+
+Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week.
+
+```{r}
+instacart %>%
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
+  group_by(product_name, order_dow) %>%
+  summarize(mean_hour = mean(order_hour_of_day)) %>%
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  )
+```
+
+
+
+
+
+
+
+
+
+
+
 
