@@ -66,6 +66,66 @@ instacart %>%
 ```
 
 
+### Problem 2
+
+Read and Tidy accel_data: 
+
+```{r}
+accel_df = read_csv(file = "./data/accel_data.csv") %>% 
+  pivot_longer(
+    activity.1:activity.1440,
+    names_to = "minute",
+    names_prefix = "activity.",
+    values_to = "activity"
+  ) %>% 
+  group_by(day) %>% 
+  mutate(
+    minute = as.numeric(minute),
+    day = as.factor(day),
+    activity = as.numeric(activity),
+    day = forcats::fct_relevel(day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
+    weekday_or_weekend =  if_else(day %in% c("Saturday", "Sunday"), "Weekend", "Weekday")
+  )
+```
+
+This tidy accel_df dataset contains five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). It has `r nrow(accel_df)` rows and `r ncol(accel_df)` and contains variables `r names(accel_df)`. 
+
+Now I am creating a table to show total activity variable for each day.
+
+```{r}
+accel_df %>% 
+  group_by(week, day) %>% 
+  summarize(aggregate_activity = sum(activity)) %>% 
+  knitr::kable()
+```
+
+No apparent trends stand out just from looking at this aggregate table. However, it is interesting to note that the level of activity on the last two Saturdays was significantly lower than any of the other days. 
+
+Next, I am creating a plot that shows the 24-hour activity time courses for each day. 
+
+```{r}
+accel_df %>% 
+  ggplot(aes(x = minute, y = activity)) +
+  geom_point(aes(color = day)) +
+  stat_smooth(method = "loess", formula = y ~ x, size = 1, se = FALSE)
+```
+
+
+### Problem 3 
+
+Load the dataset: 
+
+```{r}
+data("ny_noaa")
+```
+
+This dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. 
+
+
+
+
+
+
 
 
 
