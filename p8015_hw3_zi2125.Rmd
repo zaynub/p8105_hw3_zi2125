@@ -9,6 +9,8 @@ output: github_document
 ```{r}
 library(tidyverse)
 library(p8105.datasets)
+library(patchwork)
+library(ggridges)
 data("instacart")
 ```
 
@@ -105,10 +107,16 @@ Next, I am creating a plot that shows the 24-hour activity time courses for each
 
 ```{r}
 accel_df %>% 
-  ggplot(aes(x = minute, y = activity)) +
-  geom_point(aes(color = day)) 
+  ggplot(aes(x = minute, y = activity, color = factor(day))) +
+  geom_line() +
+  labs(
+    title = "Accelerometer Activity over Time",
+    x = "minute of the Day",
+    y = "Activity"
+  ) 
 ```
 
+The graph shows that there seems to be more consistently higher levels of activity on Thursdays and Sundays. Even though Wedenesday shows the consistently lowest levels of activity, there is one Wednesday where the max level of activity was recorded. On Fridays, he tends to be more active later in the day while on Thursday and Sunday, he is more active earlier in the day.   
 
 ### Problem 3 
 
@@ -146,23 +154,50 @@ month.labs <- c("January", "July")
 names(month.labs) <- as.numeric(c("1", "7"))
 
 noaa_df %>% 
-  group_by(id, month) %>% 
+  group_by(id, year, month) %>% 
   filter(month == 1 | month == 7, na.rm = TRUE) %>% 
   summarize(
     mean_tmax = mean(tmax)
   )  %>% 
-  ggplot(aes(x = id, y = mean_tmax)) + 
+  ggplot(aes(x = year, y = mean_tmax, group = id)) + 
     geom_point(alpha = .5) +
+    geom_smooth() +
     facet_grid(. ~ month,
                labeller = labeller(month = month.labs)) +
+  theme(panel.spacing = unit(2, "lines")) +
   labs(
     title = "Average Max Temperature in January and in July in NY",
-    x = "Weather Station ID",
+    x = "Year",
     y = "Mean Maximum Temperature (C)"
   )
 ```
 
-These plots show that average max temps in January are much lower than average max temps in July as is expected. It is also interesting to note that there are some weather stations that don't have temperature data. There are no observable outliers in this graph. 
+These plots show that average max temps in January are much lower than average max temps in July as is expected. There is one outlier in each graph. In January 1982 it seems there was a January that was significantly colder than the other years, while in July 1987, there was also a lower recorded temperature than usual.  
+
+
+Next I am making a plot that shows tmax vs. tmin for the full dataset: 
+
+```{r}
+tmax_tmin_p = 
+  noaa_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_hex()
+
+snowfall_p = 
+  noaa_df %>% 
+  filter(snow > 0 & snow < 100, na.rm = TRUE) %>% 
+  group_by(year) %>% 
+  ggplot(aes(x = snow, y = year, group = year)) +
+    geom_density_ridges() +
+    labs(
+      title = "Distribution of Snowfall by Year",
+      x = "Snowfall (mm)",
+      y = "Year"
+    )
+
+(tmax_tmin_p + snowfall_p)
+```
+
 
 
 
